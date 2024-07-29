@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from sqlalchemy import text
 
 from src.database.connect import Database
 from src.repository.contacts import ContactDB
@@ -8,6 +9,18 @@ from src.schemas import ContactsResponse, ContactCreate, ContactUpdate
 
 router = APIRouter()
 database = Database()
+
+@router.get("/healthchecker")
+async def healthchecker(db: ContactDB = Depends(database.get_contact_db)):
+    try:
+        # Make a simple query
+        result = await db.execute(text("SELECT 1")).fetchone()
+        if result is None:
+            raise HTTPException(status_code=500, detail="Database is not configured correctly")
+        return {"message": "Welcome to FastAPI. The API is up and running!"}
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail="Could not connect to the database")
 
 
 @router.get("/", response_model=List[ContactsResponse])
