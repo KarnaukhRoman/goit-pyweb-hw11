@@ -10,7 +10,7 @@ from src.schemas import ContactsResponse, ContactCreate, ContactUpdate
 router = APIRouter()
 database = Database()
 
-@router.get("/healthchecker")
+@router.get("/healthchecker", tags=["default"])
 async def get_healthcheck(contact_db: ContactDB = Depends(database.get_contact_db)):
     try:
         # Make a simple query
