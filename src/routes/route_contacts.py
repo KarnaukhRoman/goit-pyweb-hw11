@@ -11,10 +11,10 @@ router = APIRouter()
 database = Database()
 
 @router.get("/healthchecker")
-async def healthchecker(db: ContactDB = Depends(database.get_contact_db)):
+async def get_healthcheck(contact_db: ContactDB = Depends(database.get_contact_db)):
     try:
         # Make a simple query
-        result = await db.execute(text("SELECT 1")).fetchone()
+        result = await contact_db.healthcheck()
         if result is None:
             raise HTTPException(status_code=500, detail="Database is not configured correctly")
         return {"message": "Welcome to FastAPI. The API is up and running!"}

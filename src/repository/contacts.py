@@ -3,7 +3,8 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from typing import List, Optional
 
-from sqlalchemy import select, func
+from fastapi import HTTPException, status
+from sqlalchemy import select, func, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -77,6 +78,10 @@ class ContactDB(ContactABC):
         return result.scalars().all()
 
     async def create_contact(self, body: ContactCreate) -> Contact:
+        stmt = select(Contact).where(Contact.email == body.email)
+        contact = await self._session.execute(stmt)
+        if contact:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Contact with this email already exists")
         contact = Contact(
             first_name=body.first_name,
             last_name=body.last_name,
@@ -119,4 +124,6 @@ class ContactDB(ContactABC):
             # Обробка помилок бази даних
             print(f"Error occurred: {e}")
             raise
-
+    async def healthcheck(self):
+        result = await self._session.execute(text("SELECT 1"))
+        return result
